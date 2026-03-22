@@ -1,0 +1,15 @@
+# Node modülleri — her ortamda npm install ile yeniden yüklenir
+node_modules/
+
+# Next.js build çıktısı
+.next/
+out/
+
+# Ortam değişkenleri — şifreler burada tutulur, asla push'lanmaz
+.env
+.env.local
+.env.production
+
+# OS dosyaları
+.DS_Store
+Thumbs.db

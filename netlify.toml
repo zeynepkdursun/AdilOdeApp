@@ -1,0 +1,12 @@
+# Netlify yapılandırma dosyası
+# Bu dosya Netlify'a projenin nasıl build edileceğini söyler
+
+[build]
+  # Build komutu → projeyi üretim için derler
+  command = "npm run build"
+  # Publish klasörü → Next.js'in çıktı dizini
+  publish = ".next"
+
+[[plugins]]
+  # Netlify'ın Next.js eklentisi → tam uyumluluk sağlar
+  package = "@netlify/plugin-nextjs"
