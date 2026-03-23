@@ -7,7 +7,7 @@ import { SUBSCRIPTION_DATA } from "@/data/subscriptionData"
 import { getPriceForMonth } from "@/data/subscriptionData"
 import { formatCurrency, CURRENT_MONTH } from "@/lib/calculator"
 import { formatMonthLabel } from "@/data/inflationData"
-import MonthCalendar from "./MonthCalendar"
+import MonthCalendar from "../MonthCalendar"
 
 interface SubscriptionFormProps {
   state: AppState
