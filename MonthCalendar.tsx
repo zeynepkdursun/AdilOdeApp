@@ -73,7 +73,7 @@ const MonthCalendar = ({
               type="button"
               onClick={() => onYearChange(year)}
               className={`
-                px-3 py-1 rounded-lg text-xs font-medium border transition-all duration-150
+                px-4 p-2 rounded-lg text-xs font-medium border transition-all duration-150
                 ${isActive ? "text-white border-transparent" : t.yearIdle}
               `}
               style={isActive ? { background: accentColor, borderColor: accentColor } : {}}
@@ -110,7 +110,7 @@ const MonthCalendar = ({
               onClick={() => handleMonthClick(key)}
               disabled={!isAvailable}
               className={`
-                py-2 px-1 rounded-lg text-xs text-center border transition-all duration-150
+                py-2 p-2 rounded-lg text-xs text-center border transition-all duration-150
                 ${!isAvailable
                   ? t.disabled
                   : isSelected

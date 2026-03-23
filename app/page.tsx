@@ -87,7 +87,7 @@ const HomePage = () => {
 
   const rangeResult = useMemo<RangeResult | null>(() => {
     if (state.mode !== "range" || !state.rangeStart) return null
-    
+
     return calcDateRange(state.sub, state.pkg, state.rangeStart, state.rangeEnd)
   }, [state.sub, state.pkg, state.mode, state.rangeStart, state.rangeEnd])
 
@@ -133,7 +133,11 @@ const HomePage = () => {
             label={isDark ? "Açık temaya geç" : "Koyu temaya geç"}
           />
         </header>
-
+        <p className={`text-sm mb-6 leading-relaxed ${t.muted}`}>
+          Paylaşımlı aboneliklerinizde geçmişe dönük maliyetleri adaletle hesaplayın.
+          Başlangıçtan bugüne hangi üyenin ne kadar ödemesi gerektiğini enflasyon verileriyle netleştirin.
+          Kimseye haksızlık yapmadan, faturayı paydaşlarınıza kolayca hatırlatın.
+        </p>
         {/* ── Form Kartı ── */}
         <div className={`rounded-2xl p-5 mb-4 border transition-colors duration-300 ${t.card}`}>
           <SubscriptionForm state={state} onChange={handleChange} isDark={isDark} />
