@@ -3,8 +3,8 @@
 
 import { useState } from "react"
 import type { AppState, SubKey } from "@/types"
-import { SUBSCRIPTION_DATA } from "@/data/subscriptionData"
-import { getPriceForMonth } from "@/data/subscriptionData"
+import { SUBSCRIPTION_DATA } from "../data/subscriptionData"
+import { getPriceForMonth } from "../data/subscriptionData"
 import { formatCurrency, CURRENT_MONTH } from "@/lib/calculator"
 import { formatMonthLabel } from "@/data/inflationData"
 import MonthCalendar from "../MonthCalendar"
@@ -12,28 +12,45 @@ import MonthCalendar from "../MonthCalendar"
 interface SubscriptionFormProps {
   state: AppState
   onChange: (partial: Partial<AppState>) => void
+  isDark: boolean
 }
 
-// Her takvim seçicisinin hangi yılı gösterdiğini tutar
 interface CalYears {
   single: number
   start: number
   end: number
 }
 
-const SubscriptionForm = ({ state, onChange }: SubscriptionFormProps) => {
-  // Takvim yılı state'leri — her picker bağımsız
+const SubscriptionForm = ({ state, onChange, isDark }: SubscriptionFormProps) => {
   const [calYears, setCalYears] = useState<CalYears>({
     single: 2024,
     start: 2024,
     end: 2026,
   })
 
+  // Tema bazlı dinamik class yardımcıları (Mevcut boyutları ve fontları korur)
+  const t = {
+    btnIdle: isDark 
+      ? "bg-dark-700 border-dark-500 hover:border-dark-400 text-dark-400" 
+      : "bg-[#f3f0eb] border-[#d8d0c4] hover:border-[#c4bcac] text-[#4a4a5a]",
+    
+    iconBox: isDark ? "bg-dark-600" : "bg-white border border-[#e5e0d8]",
+    
+    input: isDark 
+      ? "bg-dark-700 border-dark-500 text-white placeholder-dark-500/50" 
+      : "bg-white border-[#d8d0c4] text-[#1c1c24] placeholder-[#a19a91]",
+      
+    divider: isDark ? "bg-dark-500" : "bg-[#d8d0c4]",
+    
+    label: isDark ? "text-dark-400" : "text-[#7a7a8a]",
+    
+    modeActive: isDark ? "border-gold-500/50 bg-gold-500/10 text-white" : "border-amber-500/50 bg-amber-500/10 text-amber-700"
+  }
+
   const handleYearChange = (picker: keyof CalYears, year: number) => {
     setCalYears((prev) => ({ ...prev, [picker]: year }))
   }
 
-  // Sub butonunun alt yazısını güncelle
   const getSubInfoText = (sub: SubKey): string => {
     const subData = SUBSCRIPTION_DATA[sub]
     const pkg = subData.packages.find((p) => p.id === state.pkg) ?? subData.packages[0]
@@ -45,12 +62,10 @@ const SubscriptionForm = ({ state, onChange }: SubscriptionFormProps) => {
   }
 
   const accentColor = SUBSCRIPTION_DATA[state.sub].color
-
-  // Ortak buton/label class'ları
-  const labelClass = "block text-xs text-dark-400 uppercase tracking-widest mb-2 font-medium"
+  const labelClass = `block text-xs uppercase tracking-widest mb-2 font-medium ${t.label}`
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-5 transition-colors duration-200">
 
       {/* BÖLÜM 1: Abonelik Türü */}
       <div>
@@ -66,26 +81,22 @@ const SubscriptionForm = ({ state, onChange }: SubscriptionFormProps) => {
                 key={sub}
                 type="button"
                 onClick={() => {
-                  // Paketi sıfırla eğer yeni sub'da mevcut paket yoksa
                   const pkgs = SUBSCRIPTION_DATA[sub].packages
                   const newPkg = pkgs.find((p) => p.id === state.pkg) ? state.pkg : pkgs[0].id
                   onChange({ sub, pkg: newPkg })
                 }}
-                tabIndex={0}
-                aria-pressed={isActive}
-                aria-label={`${name} seç`}
                 className={`
                   flex items-center gap-3 p-3 rounded-xl border-2 text-left
                   transition-all duration-200 relative
-                  ${isActive ? "" : "bg-dark-700 border-dark-500 hover:border-dark-400"}
+                  ${isActive ? "" : t.btnIdle}
                 `}
                 style={isActive ? {
-                  background: color + "14",
+                  background: color + (isDark ? "14" : "08"),
                   borderColor: color + "80",
-                  boxShadow: `0 0 14px ${color}14`,
+                  boxShadow: `0 0 14px ${color}${isDark ? "14" : "08"}`,
                 } : {}}
               >
-                <div className="w-8 h-8 rounded-lg bg-dark-600 flex items-center justify-center text-lg flex-shrink-0">
+                <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-lg flex-shrink-0 ${t.iconBox}`}>
                   {emoji}
                 </div>
                 <div className="flex-1 min-w-0">
@@ -97,7 +108,7 @@ const SubscriptionForm = ({ state, onChange }: SubscriptionFormProps) => {
                   </div>
                   <div
                     className="text-xs mt-0.5 truncate"
-                    style={{ color: isActive ? color + "99" : "#55557a" }}
+                    style={{ color: isActive ? color + "99" : isDark ? "#55557a" : "#7a7a8a" }}
                   >
                     {getSubInfoText(sub)}
                   </div>
@@ -125,12 +136,9 @@ const SubscriptionForm = ({ state, onChange }: SubscriptionFormProps) => {
                   key={pkg.id}
                   type="button"
                   onClick={() => onChange({ pkg: pkg.id })}
-                  tabIndex={0}
-                  aria-pressed={isActive}
-                  aria-label={`${pkg.label} paketi seç`}
                   className={`
                     p-2 rounded-lg border text-center text-xs transition-all duration-150
-                    ${!isActive ? "bg-dark-700 border-dark-500 text-dark-400 hover:border-dark-400" : "font-medium"}
+                    ${!isActive ? t.btnIdle : "font-medium"}
                   `}
                   style={isActive ? {
                     background: accentColor + "18",
@@ -159,14 +167,9 @@ const SubscriptionForm = ({ state, onChange }: SubscriptionFormProps) => {
               key={id}
               type="button"
               onClick={() => onChange({ mode: id })}
-              tabIndex={0}
-              aria-pressed={state.mode === id}
               className={`
                 py-2.5 rounded-xl border text-sm font-medium transition-all duration-150
-                ${state.mode === id
-                  ? "border-gold-500/50 bg-gold-500/10 text-white"
-                  : "bg-dark-700 border-dark-500 text-dark-400 hover:border-dark-400"
-                }
+                ${state.mode === id ? t.modeActive : t.btnIdle}
               `}
             >
               {label}
@@ -174,68 +177,68 @@ const SubscriptionForm = ({ state, onChange }: SubscriptionFormProps) => {
           ))}
         </div>
 
-        {/* TEK AY MODU */}
-        {state.mode === "single" && (
-          <div>
-            <p className={labelClass}>Hesaplanacak Ay</p>
-            <MonthCalendar
-              selectedKey={state.singleMonth}
-              onSelect={(key) => onChange({ singleMonth: key })}
-              activeYear={calYears.single}
-              onYearChange={(y) => handleYearChange("single", y)}
-              accentColor={accentColor}
-            />
-          </div>
-        )}
-
-        {/* TARİH ARALIĞI MODU */}
-        {state.mode === "range" && (
-          <div className="space-y-4">
+        {/* TAKVİMLER */}
+        <div className="space-y-4">
+          {state.mode === "single" && (
             <div>
-              <p className={labelClass}>Başlangıç Ayı</p>
+              <p className={labelClass}>Hesaplanacak Ay</p>
               <MonthCalendar
-                selectedKey={state.rangeStart}
-                onSelect={(key) => onChange({ rangeStart: key })}
-                activeYear={calYears.start}
-                onYearChange={(y) => handleYearChange("start", y)}
-                rangeStart={state.rangeStart}
-                rangeEnd={state.rangeEnd || CURRENT_MONTH}
+                selectedKey={state.singleMonth}
+                onSelect={(key) => onChange({ singleMonth: key })}
+                activeYear={calYears.single}
+                onYearChange={(y) => handleYearChange("single", y)}
                 accentColor={accentColor}
+                isDark={isDark}
               />
             </div>
+          )}
 
-            {/* Bölücü */}
-            <div className="flex items-center gap-3">
-              <div className="flex-1 h-px bg-dark-500" />
-              <span className="text-xs text-dark-400 uppercase tracking-widest">
-                Bitiş Ayı (boş = bugün)
-              </span>
-              <div className="flex-1 h-px bg-dark-500" />
-            </div>
+          {state.mode === "range" && (
+            <div className="space-y-4">
+              <div>
+                <p className={labelClass}>Başlangıç Ayı</p>
+                <MonthCalendar
+                  selectedKey={state.rangeStart}
+                  onSelect={(key) => onChange({ rangeStart: key })}
+                  activeYear={calYears.start}
+                  onYearChange={(y) => handleYearChange("start", y)}
+                  rangeStart={state.rangeStart}
+                  rangeEnd={state.rangeEnd || CURRENT_MONTH}
+                  accentColor={accentColor}
+                  isDark={isDark}
+                />
+              </div>
 
-            <div>
-              <p className={labelClass}>Bitiş Ayı</p>
-              <MonthCalendar
-                selectedKey={state.rangeEnd}
-                onSelect={(key) => onChange({ rangeEnd: key })}
-                activeYear={calYears.end}
-                onYearChange={(y) => handleYearChange("end", y)}
-                rangeStart={state.rangeStart}
-                rangeEnd={state.rangeEnd}
-                accentColor={accentColor}
-              />
+              <div className="flex items-center gap-3">
+                <div className={`flex-1 h-px ${t.divider}`} />
+                <span className={`text-xs font-medium uppercase tracking-widest ${t.label}`}>
+                  Bitiş Ayı
+                </span>
+                <div className={`flex-1 h-px ${t.divider}`} />
+              </div>
+
+              <div>
+                <p className={labelClass}>Bitiş Ayı (İşaretlenmezse: Devam Ediyor)</p>
+                <MonthCalendar
+                  selectedKey={state.rangeEnd}
+                  onSelect={(key) => onChange({ rangeEnd: key })}
+                  activeYear={calYears.end}
+                  onYearChange={(y) => handleYearChange("end", y)}
+                  rangeStart={state.rangeStart}
+                  rangeEnd={state.rangeEnd}
+                  accentColor={accentColor}
+                  isDark={isDark}
+                />
+              </div>
             </div>
-          </div>
-        )}
+          )}
+        </div>
       </div>
 
       {/* BÖLÜM 3: IBAN */}
       <div>
         <label htmlFor="iban" className={labelClass}>
-          IBAN{" "}
-          <span className="text-dark-500 normal-case text-[9px] tracking-normal">
-            (isteğe bağlı)
-          </span>
+          IBAN <span className="normal-case text-[9px] tracking-normal opacity-60">(isteğe bağlı)</span>
         </label>
         <input
           id="iban"
@@ -244,12 +247,10 @@ const SubscriptionForm = ({ state, onChange }: SubscriptionFormProps) => {
           value={state.iban}
           onChange={(e) => onChange({ iban: e.target.value })}
           maxLength={32}
-          className="
-            w-full bg-dark-700 border border-dark-500 text-white placeholder-dark-500/50
-            rounded-xl px-4 py-3 text-sm outline-none transition-all duration-150
-            focus:border-gold-500 focus:ring-1 focus:ring-gold-500/20
-          "
-          aria-label="Para transferi için IBAN numarası"
+          className={`
+            w-full rounded-xl px-4 py-3 text-sm outline-none transition-all duration-150 border
+            ${t.input} focus:ring-1 focus:ring-amber-500/20
+          `}
         />
       </div>
     </div>

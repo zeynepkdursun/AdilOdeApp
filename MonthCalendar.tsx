@@ -1,29 +1,30 @@
-// MonthCalendar bileşeni — yıl butonları + ay grid'i şeklinde takvim seçici
-// Dropdown yerine bu kullanılıyor; çok daha kullanıcı dostu
+// MonthCalendar bileşeni
 "use client"
 
 import { availableMonths } from "@/data/inflationData"
+
 
 const MONTH_LABELS_SHORT = [
   "Oca","Şub","Mar","Nis","May","Haz",
   "Tem","Ağu","Eyl","Eki","Kas","Ara"
 ]
 
-// Veri setindeki ilk ve son yılı hesapla
+// Bu satır her zaman elindeki listenin en sonundaki ayı (örn: "2026-03") döndürür
+const MAX_DATA_MONTH = availableMonths[availableMonths.length - 1];
+
 const DATA_YEARS = Array.from(
   new Set(availableMonths.map((m) => parseInt(m.split("-")[0])))
 ).sort()
 
 interface MonthCalendarProps {
-  selectedKey: string // Seçili ay ("YYYY-MM"), boş olabilir
+  isDark: boolean
+  selectedKey: string 
   onSelect: (key: string) => void
-  // Tarih aralığı modunda in-range renklendirme için
   rangeStart?: string
   rangeEnd?: string
-  // Hangi yıl görüntüleniyor (dışarıdan kontrol edilir)
   activeYear: number
   onYearChange: (year: number) => void
-  accentColor?: string // Tema rengi (Spotify=yeşil, YouTube=kırmızı)
+  accentColor?: string 
 }
 
 const MonthCalendar = ({
@@ -32,17 +33,36 @@ const MonthCalendar = ({
   rangeStart = "",
   rangeEnd = "",
   activeYear,
+  isDark,
   onYearChange,
   accentColor = "#f59e0b",
 }: MonthCalendarProps) => {
+  
   const handleMonthClick = (key: string) => {
-    // Veri setinde yoksa (devre dışı ay) tıklamayı engelle
     if (!availableMonths.includes(key)) return
     onSelect(key)
   }
 
+  // Tema bazlı stil yardımcıları
+  const t = {
+    // Yıl butonları
+    yearIdle: isDark 
+      ? "bg-dark-700 border-dark-500 text-dark-400 hover:border-dark-300 hover:text-white" 
+      : "bg-white border-slate-200 text-slate-500 hover:border-slate-300 hover:text-slate-800",
+    
+    // Normal ay butonları (boşta)
+    monthIdle: isDark 
+      ? "bg-dark-700/40 border-dark-600 text-dark-400 hover:border-dark-400 hover:text-white" 
+      : "bg-white border-slate-200 text-slate-900 hover:border-slate-300 hover:text-slate-800",
+    
+    // Veri olmayan (disabled) aylar
+    disabled: isDark 
+      ? "opacity-20 bg-dark-800 border-dark-700 text-dark-500" 
+      : "opacity-20 bg-slate-50 border-slate-100 text-slate-300"
+  }
+
   return (
-    <div>
+    <div className="transition-colors duration-300">
       {/* Yıl Seçici Satırı */}
       <div className="flex gap-1.5 mb-2 flex-wrap">
         {DATA_YEARS.map((year) => {
@@ -52,17 +72,11 @@ const MonthCalendar = ({
               key={year}
               type="button"
               onClick={() => onYearChange(year)}
-              tabIndex={0}
-              aria-label={`${year} yılını göster`}
-              aria-pressed={isActive}
               className={`
                 px-3 py-1 rounded-lg text-xs font-medium border transition-all duration-150
-                ${isActive
-                  ? "text-white border-transparent"
-                  : "bg-dark-700 border-dark-500 text-dark-400 hover:border-dark-300 hover:text-white"
-                }
+                ${isActive ? "text-white border-transparent" : t.yearIdle}
               `}
-              style={isActive ? { background: accentColor + "22", borderColor: accentColor + "88", color: "white" } : {}}
+              style={isActive ? { background: accentColor, borderColor: accentColor } : {}}
             >
               {year}
             </button>
@@ -78,36 +92,48 @@ const MonthCalendar = ({
           const isAvailable = availableMonths.includes(key)
           const isSelected = key === selectedKey
 
-          // Tarih aralığı modu: başlangıç-bitiş arası ayları renklendir
-          const effectiveEnd = rangeEnd || "2026-03"
-          const isInRange =
-            rangeStart && effectiveEnd && key > rangeStart && key < effectiveEnd
+              // --- LOGIC GÜNCELLEMESİ BAŞLANGIÇ ---
+          // Eğer seçilen bitiş ayı veri sınırından büyükse, sınırı Mart 2026'ya çek
+          const effectiveEnd = rangeEnd && rangeEnd < MAX_DATA_MONTH ? rangeEnd : MAX_DATA_MONTH;
+          
+          // isInRange: Sadece verisi olan (isAvailable) ve belirlenen sınırın altında kalan aylar
+          const isInRange = isAvailable && rangeStart && key > rangeStart && key < effectiveEnd
+              // --- LOGIC GÜNCELLEMESİ BİTİŞ ---
+          // Aralık hesaplama logic'i
+          // const effectiveEnd = rangeEnd || "2026-12"
+          // const isInRange = rangeStart && effectiveEnd && key > rangeStart && key < effectiveEnd
 
           return (
             <button
               key={key}
               type="button"
               onClick={() => handleMonthClick(key)}
-              tabIndex={isAvailable ? 0 : -1}
               disabled={!isAvailable}
-              aria-pressed={isSelected}
-              aria-label={`${label} ${activeYear}`}
               className={`
                 py-2 px-1 rounded-lg text-xs text-center border transition-all duration-150
                 ${!isAvailable
-                  ? "opacity-30 cursor-not-allowed bg-dark-800 border-dark-700 text-dark-500"
+                  ? t.disabled
                   : isSelected
-                  ? "font-semibold text-white"
+                  ? "font-bold text-white shadow-sm scale-[1.02]"
                   : isInRange
-                  ? "bg-gold-500/5 border-gold-500/20 text-dark-400 hover:border-dark-300"
-                  : "bg-dark-700 border-dark-500 text-dark-400 hover:border-dark-300 hover:text-white cursor-pointer"
+                  ? "font-medium" // Arka planı style ile vereceğiz
+                  : t.monthIdle
                 }
               `}
-              style={
-                isSelected
-                  ? { background: accentColor + "22", borderColor: accentColor + "88" }
-                  : {}
-              }
+              style={{
+                // Seçili ay: Tam renk
+                ...(isSelected ? { 
+                  backgroundColor: accentColor, 
+                  borderColor: accentColor 
+                } : {}),
+                
+                // Aralık içi ay: Seçilen rengin %15 şeffaf hali
+                ...(isInRange && !isSelected ? { 
+                  backgroundColor: accentColor + "26", // Hex sonuna 26 eklemek %15 opacity sağlar
+                  borderColor: accentColor + "40",    // Kenarlık biraz daha belirgin
+                  color: isDark ? "white" : accentColor // Yazı rengini de tema rengi yapalım
+                } : {})
+              }}
             >
               {label}
             </button>

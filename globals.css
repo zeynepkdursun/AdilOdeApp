@@ -11,6 +11,7 @@
 
 html { scroll-behavior: smooth }
 
+/* ── DARK TEMA (varsayılan) ─────────────────────────────────── */
 body {
   background-color: #0a0a0f;
   color: #e8e8f2;
@@ -18,11 +19,31 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-/* Light tema — data-theme="light" ile aktif olur */
+/* ── LIGHT TEMA ─────────────────────────────────────────────── */
+/* Arka plan: sıcak kırık beyaz */
+[data-theme="light"] { background-color: #f0ede8 }
+
 [data-theme="light"] body {
-  background-color: #d8d8d0;
-  color: #1a1a22;
+  background-color: #f0ede8;
+  color: #1c1c24;        /* koyu lacivert — okunabilirlik yüksek */
 }
+
+/* Light temada kartlar */
+[data-theme="light"] .lt-card {
+  background-color: #ffffff;
+  border-color: rgba(180, 140, 30, 0.2);
+  color: #1c1c24;
+}
+
+[data-theme="light"] .lt-surface {
+  background-color: #f7f4ef;
+  border-color: #d8d0c4;
+  color: #1c1c24;
+}
+
+[data-theme="light"] .lt-muted  { color: #4a4a5a }
+[data-theme="light"] .lt-hint   { color: #7a7a8a }
+[data-theme="light"] .lt-subtle { color: #9a9aaa }
 
 /* Sayı input ok butonlarını gizle */
 input[type="number"]::-webkit-inner-spin-button,
@@ -31,11 +52,16 @@ input[type="number"]::-webkit-outer-spin-button {
 }
 input[type="number"] { -moz-appearance: textfield }
 
-/* Özel scrollbar */
+/* Scrollbar — dark */
 ::-webkit-scrollbar { width: 5px }
 ::-webkit-scrollbar-track { background: #111118 }
 ::-webkit-scrollbar-thumb { background: #32324a; border-radius: 3px }
 ::-webkit-scrollbar-thumb:hover { background: #f59e0b }
+
+/* Scrollbar — light */
+[data-theme="light"] ::-webkit-scrollbar-track { background: #e8e4de }
+[data-theme="light"] ::-webkit-scrollbar-thumb { background: #b8b0a4 }
+[data-theme="light"] ::-webkit-scrollbar-thumb:hover { background: #d97706 }
 
 @layer utilities {
   .text-gradient {

@@ -4,17 +4,17 @@
 import { useState } from "react"
 import type { SingleResult, RangeResult, AppState } from "@/types"
 import { formatCurrency, CURRENT_MONTH } from "@/lib/calculator"
-import { formatMonthLabel } from "@/data/inflationData"
-import { SUBSCRIPTION_DATA } from "@/data/subscriptionData"
+import { formatMonthLabel } from "../data/inflationData"
+import { SUBSCRIPTION_DATA } from "../data/subscriptionData"
 
 type Result = SingleResult | RangeResult | null
 
 interface WhatsAppShareProps {
   result: Result
   appState: AppState
+  isDark: boolean // lowercase 'boolean' TS standartıdır
 }
 
-// Mesajı oluşturan yardımcı fonksiyon
 const buildMessage = (result: Result, appState: AppState): string => {
   if (!result) return ""
 
@@ -24,8 +24,6 @@ const buildMessage = (result: Result, appState: AppState): string => {
   const persons = pkg?.persons ?? 1
   const ibanLine = appState.iban ? `\n💳 IBAN: ${appState.iban}` : ""
 
-  // SingleResult mi RangeResult mi olduğunu kontrol et
-  // "months" property RangeResult'a özgüdür
   const isRange = "months" in result
 
   if (!isRange) {
@@ -66,18 +64,27 @@ Merhaba! ${r.startLabel} – ${endLabel} dönemi abonelik ücretlerinin bugünk�
 _AdilÖde v3.0_`
 }
 
-const WhatsAppShare = ({ result, appState }: WhatsAppShareProps) => {
+const WhatsAppShare = ({ result, appState, isDark }: WhatsAppShareProps) => {
   const [isCopied, setIsCopied] = useState(false)
 
   if (!result) return null
 
   const message = buildMessage(result, appState)
 
+  // Tema bazlı stil yardımcıları
+  const t = {
+    cardBg:    isDark ? "bg-[#1a1a25] border-[#2e2e3e]/50" : "bg-white border-amber-500/20",
+    textMain:  isDark ? "text-white"                        : "text-[#1c1c24]",
+    textMuted: isDark ? "text-[#8888aa]"                    : "text-[#4a4a5a]",
+    previewBg: isDark ? "bg-[#111118] border-[#2e2e3e]"    : "bg-[#fdfcfb] border-[#e5e0d8]",
+    copyBtn:   isDark ? "bg-[#1f1f2e] border-[#2e2e3e]"    : "bg-[#f1efe9] border-[#d8d0c4]",
+    iconBg:    isDark ? "bg-green-900/30 border-green-500/20" : "bg-green-100 border-green-200",
+  }
+
   const handleCopy = async () => {
     try {
       await navigator.clipboard.writeText(message)
     } catch {
-      // Fallback: eski yöntem
       const ta = document.createElement("textarea")
       ta.value = message
       document.body.appendChild(ta)
@@ -100,21 +107,21 @@ const WhatsAppShare = ({ result, appState }: WhatsAppShareProps) => {
 
   return (
     <div
-      className="bg-dark-800 border border-dark-600/50 rounded-2xl p-5 space-y-4"
+      className={`${t.cardBg} border rounded-2xl p-5 space-y-4 transition-colors duration-300 shadow-sm`}
       aria-label="WhatsApp paylaşım bölümü"
     >
       <div className="flex items-center gap-3">
-        <div className="w-8 h-8 bg-green-900/30 border border-green-500/20 rounded-lg flex items-center justify-center text-sm flex-shrink-0">
+        <div className={`w-8 h-8 ${t.iconBg} rounded-lg flex items-center justify-center text-sm flex-shrink-0`}>
           💬
         </div>
         <div>
-          <p className="text-sm font-medium text-white">WhatsApp Mesajı Hazır</p>
-          <p className="text-xs text-dark-400">Kopyala veya WhatsApp'ta aç</p>
+          <p className={`text-sm font-semibold ${t.textMain}`}>WhatsApp Mesajı Hazır</p>
+          <p className={`text-xs ${t.textMuted}`}>Kopyala veya WhatsApp&apos;ta aç</p>
         </div>
       </div>
 
       {/* Mesaj önizleme */}
-      <pre className="bg-dark-700 border border-dark-600 rounded-xl p-3 text-[11px] text-dark-300 whitespace-pre-wrap leading-relaxed max-h-28 overflow-y-auto font-body">
+      <pre className={`${t.previewBg} border rounded-xl p-3 text-[11px] ${t.textMuted} whitespace-pre-wrap leading-relaxed max-h-28 overflow-y-auto font-sans`}>
         {message}
       </pre>
 
@@ -123,14 +130,12 @@ const WhatsAppShare = ({ result, appState }: WhatsAppShareProps) => {
         <button
           type="button"
           onClick={handleCopy}
-          tabIndex={0}
-          aria-label="Mesajı panoya kopyala"
           className={`
             flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-medium
-            border transition-all duration-200
+            border transition-all duration-200 active:scale-95
             ${isCopied
-              ? "bg-green-900/20 border-green-500/40 text-green-400"
-              : "bg-dark-700 border-dark-500 text-white hover:border-gold-500/40"
+              ? "bg-green-500/10 border-green-500/40 text-green-600 dark:text-green-400"
+              : `${t.copyBtn} ${t.textMain} hover:border-amber-500/40`
             }
           `}
         >
@@ -141,9 +146,7 @@ const WhatsAppShare = ({ result, appState }: WhatsAppShareProps) => {
         <button
           type="button"
           onClick={handleWhatsApp}
-          tabIndex={0}
-          aria-label="WhatsApp'ta mesajı aç"
-          className="flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-medium bg-green-700 hover:bg-green-600 text-white transition-colors duration-200 active:scale-95"
+          className="flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-medium bg-[#25D366] hover:bg-[#20bd5b] text-white transition-all duration-200 active:scale-95 shadow-sm"
         >
           <span>📱</span>
           <span>WhatsApp&apos;ta Aç</span>
